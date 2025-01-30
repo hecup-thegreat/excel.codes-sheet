@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "API Data Table Formatter",
+  "version": "1.0",
+  "description": "Fetches data and replaces the page with a table",
+  "permissions": ["activeTab", "tabs", "scripting"],
+  "host_permissions": ["https://excel.codes/years/1/subjects/musculoskeletal-system"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Click to format table"
+  }
+}
