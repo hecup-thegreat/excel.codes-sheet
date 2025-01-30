@@ -174,10 +174,10 @@
             value.forEach(entry => {
               const box = document.createElement("div");
               box.style.border = "1px solid var(--border-color)";
-              box.style.padding = "5px";
-              box.style.margin = "5px";
+              box.style.padding = "1px";
+              box.style.margin = "1px";
               box.style.backgroundColor = "var(--box-bg)";
-              box.style.borderRadius = "5px";
+              box.style.borderRadius = "13px";
 
               const a = document.createElement("a");
               a.href = entry.link || "#";
