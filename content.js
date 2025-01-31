@@ -12,7 +12,7 @@
       --box-bg: #f9f9f9;
       --text-color: initial;
       --special-col: #f0f8ff;
-      --special-text: initial; /* New variable for special columns text color */
+      --special-text: initial;
       --background-color: white;
       --even-row: #f9f9f9;
       --odd-row: #ffffff;
@@ -23,11 +23,20 @@
   const API_URL = "https://old.excel.codes/api/subjects";
   const AUTH_TOKEN = localStorage.token;
 
-  // Color customization UI
+  // Modified color controls with toggle
   function createColorControls() {
     const container = document.createElement('div');
     container.style.margin = '20px 0';
-    container.innerHTML = `
+    
+    // Toggle button
+    const toggleBtn = document.createElement('button');
+    toggleBtn.textContent = 'Toggle Color Customization';
+    container.appendChild(toggleBtn);
+
+    // Color controls (initially hidden)
+    const colorControls = document.createElement('div');
+    colorControls.style.display = 'none';
+    colorControls.innerHTML = `
       <h3>Color Customization</h3>
       <div>
         <label>Header Background: <input type="color" data-target="header-bg"></label>
@@ -49,12 +58,12 @@
       const savedColor = localStorage.getItem(key);
       if (savedColor) {
         document.documentElement.style.setProperty(`--${key}`, savedColor);
-        container.querySelector(`[data-target="${key}"]`).value = savedColor;
+        colorControls.querySelector(`[data-target="${key}"]`).value = savedColor;
       }
     });
 
-    // Add event listeners for color pickers
-    container.querySelectorAll('input[type="color"]').forEach(input => {
+    // Event listeners
+    colorControls.querySelectorAll('input[type="color"]').forEach(input => {
       input.addEventListener('input', (e) => {
         const target = e.target.dataset.target;
         const value = e.target.value;
@@ -63,17 +72,22 @@
       });
     });
 
-    // Reset colors to defaults
-    container.querySelector('#resetColors').addEventListener('click', () => {
+    colorControls.querySelector('#resetColors').addEventListener('click', () => {
       colorKeys.forEach(key => {
         document.documentElement.style.removeProperty(`--${key}`);
         localStorage.removeItem(key);
       });
-      container.querySelectorAll('input[type="color"]').forEach(input => {
+      colorControls.querySelectorAll('input[type="color"]').forEach(input => {
         input.value = '';
       });
     });
 
+    // Toggle visibility
+    toggleBtn.addEventListener('click', () => {
+      colorControls.style.display = colorControls.style.display === 'none' ? 'block' : 'none';
+    });
+
+    container.appendChild(colorControls);
     return container;
   }
 
@@ -123,7 +137,8 @@
 
     const headers = ["Index", "Discipline", "Instructor", "name", "textbook", "recordings", "notes", "anki", "files", "recommendations"];
 
-    // Create table header
+    // Create sticky header
+    const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
     headers.forEach(header => {
       const th = document.createElement("th");
@@ -135,26 +150,31 @@
       th.style.color = "var(--text-color)";
       headerRow.appendChild(th);
     });
-    table.appendChild(headerRow);
+    
+    // Make header sticky
+    thead.style.position = 'sticky';
+    thead.style.top = '0';
+    thead.style.zIndex = '100';
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
 
-    // Create table rows
+    // Table body
+    const tbody = document.createElement("tbody");
     items.forEach((item, index) => {
       const tr = document.createElement("tr");
       const rowColor = index % 2 === 0 ? "var(--even-row)" : "var(--odd-row)";
 
-      // Special columns (Index, Discipline, Instructor)
       ["index", "discipline", "instructor"].forEach((field) => {
         const td = document.createElement("td");
         td.style.border = "1px solid var(--border-color)";
         td.style.padding = "10px";
         td.style.textAlign = "center";
         td.style.backgroundColor = "var(--special-col)";
-        td.style.color = "var(--special-text)"; // Customizable text color
+        td.style.color = "var(--special-text)";
         td.textContent = item[field];
         tr.appendChild(td);
       });
 
-      // Other columns
       headers.slice(3).forEach(header => {
         const td = document.createElement("td");
         let value = item[header];
@@ -212,34 +232,27 @@
         tr.appendChild(td);
       });
 
-      table.appendChild(tr);
+      tbody.appendChild(tr);
     });
 
+    table.appendChild(tbody);
     tableContainer.appendChild(table);
     document.body.appendChild(tableContainer);
     document.body.style.backgroundColor = "var(--background-color)";
   }
 
-  // Filter dropdowns and table filtering logic
+  // Rest of the code remains unchanged
   function createFilterDropdowns(items) {
     const filterContainer = document.createElement("div");
-
-    // Create dropdown for filtering Index
     const indexOptions = createDropdownOptions(items, "index");
     const filterIndex = createFilterDropdown("Index", indexOptions);
-
-    // Create dropdown for filtering Discipline
     const disciplineOptions = createDropdownOptions(items, "discipline");
     const filterDiscipline = createFilterDropdown("Discipline", disciplineOptions);
-
-    // Create dropdown for filtering Instructor
     const instructorOptions = createDropdownOptions(items, "instructor");
     const filterInstructor = createFilterDropdown("Instructor", instructorOptions);
-
     filterContainer.appendChild(filterIndex);
     filterContainer.appendChild(filterDiscipline);
     filterContainer.appendChild(filterInstructor);
-
     return filterContainer;
   }
 
@@ -254,23 +267,19 @@
     inputLabel.textContent = `Filter by ${label}: `;
     const select = document.createElement("select");
     select.name = label.toLowerCase();
-
     const defaultOption = document.createElement("option");
     defaultOption.textContent = `Select ${label}`;
     defaultOption.value = "";
     select.appendChild(defaultOption);
-
     options.forEach(option => {
       const opt = document.createElement("option");
       opt.value = option.value;
       opt.textContent = option.label;
       select.appendChild(opt);
     });
-
     select.addEventListener("change", () => filterTable());
     container.appendChild(inputLabel);
     container.appendChild(select);
-
     return container;
   }
 
@@ -278,20 +287,16 @@
     const selectedIndex = document.querySelector('select[name="index"]').value;
     const selectedDiscipline = document.querySelector('select[name="discipline"]').value;
     const selectedInstructor = document.querySelector('select[name="instructor"]').value;
-
     const rows = document.querySelectorAll("table tr");
     rows.forEach((row, index) => {
-      if (index === 0) return; // Skip header row
-
+      if (index === 0) return;
       const rowData = row.children;
       const rowIndex = rowData[0].textContent;
       const rowDiscipline = rowData[1].textContent;
       const rowInstructor = rowData[2].textContent;
-
       const matchesIndex = !selectedIndex || rowIndex === selectedIndex;
       const matchesDiscipline = !selectedDiscipline || rowDiscipline === selectedDiscipline;
       const matchesInstructor = !selectedInstructor || rowInstructor === selectedInstructor;
-
       if (matchesIndex && matchesDiscipline && matchesInstructor) {
         row.style.display = "";
       } else {
@@ -300,7 +305,6 @@
     });
   }
 
-  // Fetch data and create table
   const rawItems = await fetchData();
   const cleanedItems = cleanData(rawItems);
   createTable(cleanedItems);
