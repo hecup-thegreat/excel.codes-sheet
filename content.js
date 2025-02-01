@@ -127,6 +127,14 @@
     document.body.innerHTML = "";
     document.body.appendChild(createColorControls());
 
+    // Add Google Sheet Button
+    const googleSheetButton = document.createElement('button');
+    googleSheetButton.textContent = 'TASMTGA';
+    googleSheetButton.addEventListener('click', () => {
+      window.open('https://docs.google.com/spreadsheets/d/1Tkx7yttE8IcD5MImrLhL2IX8LQqRNyv1UbJyFEdbhxQ/edit?gid=0#gid=0', '_blank');
+    });
+    document.body.appendChild(googleSheetButton);
+
     const tableContainer = document.createElement("div");
     const filterDropdowns = createFilterDropdowns(items);
     tableContainer.appendChild(filterDropdowns);
